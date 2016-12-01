@@ -1,40 +1,84 @@
 <?xml version="1.0"?>
 <Devices>
-    <!-- Extended Color Device -->
+
+	<!-- Hub Device -->
+	<Device type="custom" id="hueHub">
+		<Name>Hue Hub</Name>
+		<ConfigUI>
+			<Field id="address" type="textfield" defaultValue="">
+				<Label>IP Address:</Label>
+			</Field>
+			<Field id="labelAddress" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
+				<Label>IP address of Hue hub (e.g. 192.168.1.15)</Label>
+			</Field>
+			<Field id="hostId" type="textfield" defaultValue="" readonly="true">
+				<Label>Host ID:</Label>
+			</Field>
+			<Field id="labelHostId" type="label" alignWithControl="true" fontColor="darkgray" fontSize="small">
+				<Label>(read-only). Generated host ID assigned by the Hue hub.</Label>
+			</Field>
+			<Field id="startPairingButton" type="button" tooltip="Before clicking this button, press the center button on the Hue hub.  Within 30 seconds of doing that, come back here and click this button to pair with the Hue hub.">
+				<Label>Pairing:</Label>
+				<Title>Pair Now</Title>
+				<CallbackMethod>restartPairing</CallbackMethod>
+			</Field>
+			<Field id="sep2" type="separator"/>
+			<Field id="instructions0" type="label" fontColor="black" fontSize="small">
+				<Label>INSTRUCTION:</Label>
+			</Field>
+			<Field id="instructions1" type="label" fontColor="darkgray" fontSize="small">
+				<Label>Enter the IP address assigned to the Hue hub by your router. If you are unable to find the IP address given to your Hue hub using your router's administrative interface, you can obtain the Hue hub's IP address by registering on and using the
+					www.meethue.com web site, then viewing your hub settings.</Label>
+			</Field>
+			<Field id="instructions2" type="label" fontColor="darkgray" fontSize="small">
+				<Label>After the IP address has been entered, go to the Hue hub and press the center button. Within 30 seconds, come back to this dialog and click the "Pair Now" button.</Label>
+			</Field>
+			<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
+				<Label>Once this is done, click the "Save" button.</Label>
+			</Field>
+			<Field id="paired" type="checkbox" readonly="true">
+				<Label>Pairing Complete</Label>
+			</Field>
+		</ConfigUI>
+		<States></States>
+	</Device>
+
+	<!-- Extended Color Device -->
 	<Device type="dimmer" id="hueBulb">
 		<Name>Hue Color/Ambiance (Original, Downlight, Spotlight, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this bulb.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
-</Label>
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this bulb. If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-
-NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds. NOTE: Ramp Rates greater than 60 seconds when turning off a device will result in the device abruptly turning off after
+					dimming for about 60 seconds. This is a bug in the Philips Hue system specific to the Hue bulb. This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
+				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="modelId" type="textfield" hidden="true"/>
+			<Field id="manufacturerName" type="textfield" hidden="true"/>
+			<Field id="swVersion" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="uniqueId" type="textfield" hidden="true"/>
 			<!-- By default dimmer type devices automatically inherit these
 			device properties which describe the characteristics of a specific
 			dimmer instance:
@@ -46,7 +90,7 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 				   -> SupportsTwoWhiteLevelsSimultaneously:	True or False (requires SupportsTwoWhiteLevels to be True)
 				   -> SupportsWhiteTemperature:				True or False (requires SupportsWhite to be True)
 				   -> SupportsRGBandWhiteSimultaneously:	True or False (requires SupportsRGB and SupportsWhite to be True)
-			
+
 			Plugins can update these properties either in device ConfigUI
 			(like below), or can update them from python by using the
 			dev.replacePluginPropsOnServer() method, most likely inside your
@@ -60,11 +104,11 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			techniques are mutually exlcusive, so choosing to enable two white levels
 			will override (and not show) the white temperature UI.
 			-->
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false"/>
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -133,39 +177,41 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 	<Device type="dimmer" id="hueAmbiance">
 		<Name>Ambiance Lights</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-					Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this device. If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
 				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-					0 = instant.
-					Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
 				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="modelId" type="textfield" hidden="true"/>
+			<Field id="manufacturerName" type="textfield" hidden="true"/>
+			<Field id="swVersion" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="uniqueId" type="textfield" hidden="true"/>
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true"/>
 		</ConfigUI>
 		<States>
 			<State id="colorTemp">
@@ -195,44 +241,46 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device will result i
 			</State>
 		</States>
 	</Device>
-    <!-- LightStrips Device -->
+	<!-- LightStrips Device -->
 	<Device type="dimmer" id="hueLightStrips">
 		<Name>Hue LightStrips</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
-</Label>
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this device. If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="modelId" type="textfield" hidden="true"/>
+			<Field id="manufacturerName" type="textfield" hidden="true"/>
+			<Field id="swVersion" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="uniqueId" type="textfield" hidden="true"/>
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGBandWhiteSimultaneously" type="checkbox" hidden="true" defaultValue="false"/>
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -297,43 +345,45 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-    <!-- LivingColors Bloom Device -->
+	<!-- LivingColors Bloom Device -->
 	<Device type="dimmer" id="hueLivingColorsBloom">
 		<Name>Color Lights (Aura, Bloom, StoryLight, LivingColors, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator"/>
+				<List class="self" method="bulbListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
-</Label>
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this device. If no value is entered, when an "on" command is sent, the device will return to the brightness it was at before being turned off.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="modelId" type="textfield" hidden="true"/>
+			<Field id="manufacturerName" type="textfield" hidden="true"/>
+			<Field id="swVersion" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="uniqueId" type="textfield" hidden="true"/>
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false"/>
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -393,45 +443,46 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-    <!-- LivingWhites Device -->
+	<!-- LivingWhites Device -->
 	<Device type="dimmer" id="hueLivingWhites">
 		<Name>LivingWhites (Hue Lux, Generic Light, etc.)</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbListGenerator" filter="hueLivingWhites"/>
+				<List class="self" method="bulbListGenerator" filter="hueLivingWhites" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this device.  If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
-</Label>
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this device. If no value is entered, when an "on" command is sent, the bulb will return to the brightness it was at before being turned off.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-
-NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in the device abruptly turning off after dimming for about 60 seconds. This is a bug in the Philips Hue system.  This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds. NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in the device abruptly turning off after dimming
+					for about 60 seconds. This is a bug in the Philips Hue system. This does not affect Ramp Rates when turning on or changing brightness, only when turning a device off.
+				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="modelId" type="textfield" hidden="true" />
-			<Field id="manufacturerName" type="textfield" hidden="true" />
-			<Field id="swVersion" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="uniqueId" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="modelId" type="textfield" hidden="true"/>
+			<Field id="manufacturerName" type="textfield" hidden="true"/>
+			<Field id="swVersion" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="uniqueId" type="textfield" hidden="true"/>
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="false"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="false"/>
 		</ConfigUI>
 		<States>
 			<State id="alertMode">
@@ -451,40 +502,42 @@ NOTE: Ramp Rates greater than 60 seconds when turning off a device may result in
 			</State>
 		</States>
 	</Device>
-    <!-- Hue Group Device -->
+	<!-- Hue Group Device -->
 	<Device type="dimmer" id="hueGroup">
 		<Name>Hue Group</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="groupId" type="menu">
 				<Label>Hue Group:</Label>
-				<List class="self" method="groupListGenerator"/>
+				<List class="self" method="groupListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="defaultBrightness" type="textfield">
 				<Label>Default Brightness:</Label>
 			</Field>
 			<Field id="labelDefaultBrightness" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 - 100 percent)
-Optionally set a default brightness level used whenever an "on" command is sent to this group.  If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
-</Label>
+				<Label>(1 - 100 percent) Optionally set a default brightness level used whenever an "on" command is sent to this group. If no value is entered, when an "on" command is sent, the group will return to the brightness it was last set to.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
-			<Field id="address" type="textfield" hidden="true" />
-			<Field id="savedBrightness" type="textfield" hidden="true" />
-			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true" />
-			<Field id="nameOnHub" type="textfield" hidden="true" />
-			<Field id="type" type="textfield" hidden="true" />
-			<Field id="groupClass" type="textfield" hidden="true" />
+			<Field id="address" type="textfield" hidden="true"/>
+			<Field id="savedBrightness" type="textfield" hidden="true"/>
+			<Field id="SupportsColor" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsRGB" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhite" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="SupportsWhiteTemperature" type="checkbox" hidden="true" defaultValue="true"/>
+			<Field id="nameOnHub" type="textfield" hidden="true"/>
+			<Field id="type" type="textfield" hidden="true"/>
+			<Field id="groupClass" type="textfield" hidden="true"/>
 		</ConfigUI>
 		<States>
 			<State id="hue">
@@ -559,13 +612,18 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 			</State>
 		</States>
 	</Device>
-    <!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
+	<!-- Hue Device Attribute Controller (Virtual Dimmer Device) -->
 	<Device type="dimmer" id="hueAttributeController">
 		<Name>Hue Device Attribute Controller</Name>
 		<ConfigUI>
+			<Field id="hubId" type="menu">
+                <Label>Hue Hub:</Label>
+                <List class="indigo.devices" filter="self.hueHub" dynamicReload="true"/>
+				<CallbackMethod>deviceHubChanged</CallbackMethod>
+            </Field>
 			<Field id="bulbDeviceId" type="menu">
 				<Label>Hue Device:</Label>
-				<List class="self" method="bulbDeviceListGenerator"/>
+				<List class="self" method="bulbDeviceListGenerator" dynamicReload="true"/>
 			</Field>
 			<Field id="attributeToControl" type="menu" defaultValue="hue">
 				<Label>Attribute to Control:</Label>
@@ -579,25 +637,22 @@ Optionally override the default Ramp Rate (transition time), accurate to 0.1 sec
 				</List>
 			</Field>
 			<Field id="labelAttribute" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>Select an attribute on the Hue device to be conrolled.
-</Label>
+				<Label>Select an attribute on the Hue device to be controlled.
+				</Label>
 			</Field>
 			<Field id="rate" type="textfield">
 				<Label>Ramp Rate:</Label>
 			</Field>
 			<Field id="labelRate" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(0 - 540 seconds)
-0 = instant.
-Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
-</Label>
+				<Label>(0 - 540 seconds) 0 = instant. Optionally override the default Ramp Rate (transition time), accurate to 0.1 seconds.
+				</Label>
 			</Field>
 			<Field id="defaultOnLevel" type="textfield">
 				<Label>Default On Level:</Label>
 			</Field>
 			<Field id="labelOnLevel" type="label" alignWithControl="true" fontSize="small" fontColor="darkgray">
-				<Label>(1 to 100 percent)
-Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here.  If no value is specified, the control will always go to 100% when turned "on" by Indigo.
-</Label>
+				<Label>(1 to 100 percent) Optionally set a default "on" level. When turned on, the Hue Device Attribute Controller will go to the percentage specified here. If no value is specified, the control will always go to 100% when turned "on" by Indigo.
+				</Label>
 			</Field>
 			<Field id="address" type="textfield" hidden="true">
 				<Label/>

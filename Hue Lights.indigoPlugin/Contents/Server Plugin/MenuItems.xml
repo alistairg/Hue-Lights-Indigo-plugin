@@ -1,8 +1,14 @@
 <?xml version="1.0"?>
 <MenuItems>
     <MenuItem id="menu1">
-        <Name>Reload Hue Hub Config</Name>
-        <CallbackMethod>updateAllHueLists</CallbackMethod>
+        <Name>Reload Hue Hub Config...</Name>
+		<ConfigUI>
+		<Field id="hubId" type="menu">
+			<Label>Hub:</Label>
+			<List class="indigo.devices" filter="self.hueHub"/>
+		</Field>
+        </ConfigUI>
+        <CallbackMethod>updateAllHueListsFromMenu</CallbackMethod>
     </MenuItem>
 	<MenuItem id="sep1" />
 	<MenuItem id="savePreset">
