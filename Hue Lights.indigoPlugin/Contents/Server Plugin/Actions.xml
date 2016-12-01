@@ -1,5 +1,15 @@
 <?xml version="1.0"?>
 <Actions>
+	<Action id="recallScene" deviceFilter="self.hueHub">
+		<Name>Recall Scene</Name>
+		<ConfigUI>
+			<Field id="sceneId" type="menu">
+				<Label>Scene:</Label>
+				<List class="self" method="sceneListGenerator" dynamicReload="true"/>
+			</Field>
+		</ConfigUI>
+		<CallbackMethod>recallScene</CallbackMethod>
+	</Action>
 	<Action id="startStopBrightening" deviceFilter="self" uiPath="DeviceActions">
 		<Name>Start/Stop Brightening</Name>
 		<CallbackMethod>startStopBrightening</CallbackMethod>

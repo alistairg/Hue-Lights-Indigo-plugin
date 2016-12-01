@@ -14,9 +14,15 @@
 #   http://www.nathansheldon.com/files/Hue-Lights-Plugin.php
 #   All modificiations are open source.
 #
+#
 #	Version 1.4.6b2
 #
-#	History:	1.4.6b2 (limited release).
+#
+#				1.4.6b3.ag (alistairg)
+#				Changed underlying approach to support multiple hue hubs. Each hub should be represented as its own device.
+#				Added ability to recall scenes from the hue hub
+#				--
+#				1.4.6b2 (limited release).
 #				* Changed light and group status update process to use less CPU in mid
 #				  to large Hue installations.
 #				--
@@ -475,7 +481,6 @@ class Plugin(indigo.PluginBase):
 		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		self.debug = pluginPrefs.get('showDebugInfo', False)
 		self.debugLog(u"Initializing Plugin.")
-		self.hostId = pluginPrefs.get('hostId', None)	# Username/key used to access Hue hub.
 		self.deviceList = []		# list of device IDs to monitor
 		self.hubList = []			# list of hub definitions
 		self.controlDeviceList = []	# list of virtual dimmer device IDs that control bulb devices
@@ -1739,17 +1744,33 @@ class Plugin(indigo.PluginBase):
 	# Validate Action Configuration.
 	########################################
 	def validateActionConfigUi(self, valuesDict, typeId, deviceId):
-		device = indigo.devices[deviceId]
-		self.debugLog(u"Validating action config for type: " + typeId + u", device: " + device.name)
+
+		if deviceId is not None and deviceId > 0:
+			device = indigo.devices[deviceId]
+			modelId = device.pluginProps.get('modelId', False)
+			self.debugLog(u"Validating action config for type: " + typeId + u", device: " + device.name)
+		else:
+			device = None
+			self.debugLog(u"Validating action config for type: " + typeId)
+
 		self.debugLog(u"Values:\n" + str(valuesDict))
 		isError = False
 		errorsDict = indigo.Dict()
 		errorsDict['showAlertText'] = ""
 		descString = u""
-		modelId = device.pluginProps.get('modelId', False)
+
+
+		### RECALL HUE SCENE
+		if typeId == "recallScene":
+			sceneId = valuesDict.get("sceneId", None)
+			if sceneId is None:
+				isError = True
+				errorsDict['sceneId'] = u"Select a scene to recall"
+				errorsDict['showAlertText'] += errorsDict['sceneId'] + "\n\n"
+
 
 		### SET BRIGHTNESS WITH RAMP RATE ###
-		if typeId == "setBrightness":
+		elif typeId == "setBrightness":
 			brightnessSource = valuesDict.get('brightnessSource', False)
 			brightness = valuesDict.get('brightness', False)
 			brightnessVarId = valuesDict.get('brightnessVariable', False)
@@ -2557,6 +2578,35 @@ class Plugin(indigo.PluginBase):
 	def deviceHubChanged(self, valuesDict, typeId, devId):
 		self.debugLog("Selected hub for bulb device was changed")
 		return (True, valuesDict)
+
+	# Scene List Generator
+	########################################
+	def sceneListGenerator(self, filter="", valuesDict=None, typeId="", targetId=0):
+
+		returnSceneList = list()
+
+		# Get the hub ID
+		hubId = targetId if targetId > 0 else valuesDict.get("hubId", None)
+		if hubId is None:
+			self.debugLog("Asked to get list of scenes without a hub. Refusing.")
+			return returnSceneList
+
+		# Get the hub
+		hubDevice = indigo.devices.get(int(hubId), None)
+		if hubDevice is None:
+			self.errorLog("Failed to get a hub with ID '%i'" % (hubId))
+			return returnSceneList
+
+		# Get the scenesDict for this hub
+		hubScenesDict = self.scenesDict[str(hubId)]
+
+		# Iterate over our scenes, and return the available list in Indigo's format
+		for sceneId, sceneDetails in hubScenesDict.items():
+			if sceneDetails.get("recycle", False) == False:
+				returnSceneList.append([sceneId, sceneDetails["name"]])
+
+		# Done
+		return returnSceneList
 
 	# Bulb List Generator
 	########################################
@@ -6056,10 +6106,11 @@ class Plugin(indigo.PluginBase):
 		#	indigo.server.log(u"Loaded %i user devices." % len(self.usersDict))
 
 		# Scenes list...
-		#if len(self.scenesDict) == 1:
-		#	indigo.server.log(u"Loaded %i scene." % len(self.scenesDict))
-		#else:
-		#	indigo.server.log(u"Loaded %i scenes." % len(self.scenesDict))
+		scenesDict = self.scenesDict[str(hubDevice.id)]
+		if len(scenesDict) == 1:
+			indigo.server.log(u"Loaded %i scene." % len(scenesDict))
+		else:
+			indigo.server.log(u"Loaded %i scenes." % len(scenesDict))
 
 		# Resource links list...
 		#if len(self.resourcesDict) == 1:
@@ -6226,8 +6277,6 @@ class Plugin(indigo.PluginBase):
 						# Get the username provided by the hub.
 						hueUsername = successDict['username']
 						self.debugLog(u"Username (a.k.a. key) assigned by Hue hub to Hue Lights plugin: %s" % hueUsername)
-						# Set the plugin's hostId to the new username.
-						self.hostId = hueUsername
 						# Make sure the new username is returned to the config dialog.
 						valuesDict['hostId'] = hueUsername
 
@@ -7783,6 +7832,55 @@ class Plugin(indigo.PluginBase):
 	########################################
 	# Action Handling Methods
 	########################################
+
+	# Recall Scene
+	########################################
+	def recallScene(self, action, device):
+
+		# Catch no device
+		if device == None:
+			errorText = u"No device was selected for the \"" + action.name + u"\" action. Please edit the action and select a Hue Light device."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+
+		# Get the scene ID
+		sceneId = action.props.get("sceneId", None)
+		if sceneId is None:
+			errorText = u"No scene is selected to recall."
+			self.errorLog(errorText)
+			# Remember the error.
+			self.lastErrorMessage = errorText
+			return
+
+		# Get the address and host details
+		ipAddress = device.pluginProps.get("address", None)
+		hostId = device.pluginProps.get("hostId", None)
+
+		# Send the recall request
+		requestData = json.dumps({"scene": sceneId})
+		self.debugLog("Sending scene request - %s" % requestData)
+		try:
+			r = requests.put("http://%s/api/%s/groups/0/action" % (ipAddress, hostId), data=requestData, timeout=kTimeout)
+		except requests.exceptions.Timeout:
+			errorText = u"Failed to connect to the Hue hub at %s after %i seconds. - Check that the hub is connected and turned on." % (
+				ipAddress, kTimeout)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			return
+		except requests.exceptions.ConnectionError:
+			errorText = u"Failed to connect to the Hue hub at %s. - Check that the hub is connected and turned on." % (
+				ipAddress)
+			# Don't display the error if it's been displayed already.
+			if errorText != self.lastErrorMessage:
+				self.errorLog(errorText)
+				# Remember the error.
+				self.lastErrorMessage = errorText
+			return
 
 	# Start/Stop Brightening
 	########################################

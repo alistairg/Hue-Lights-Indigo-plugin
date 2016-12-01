@@ -36,7 +36,7 @@
 			<Field id="instructions3" type="label" fontColor="darkgray" fontSize="small">
 				<Label>Once this is done, click the "Save" button.</Label>
 			</Field>
-			<Field id="paired" type="checkbox" readonly="true">
+			<Field id="paired" type="checkbox" visible="false">
 				<Label>Pairing Complete</Label>
 			</Field>
 		</ConfigUI>
